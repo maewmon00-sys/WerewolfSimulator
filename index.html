@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Werewolf Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app">
+
+        <!-- Screen 0: Introduction -->
+        <section id="intro-screen" class="screen active">
+            <div class="intro-content">
+                <header class="main-header big-header">
+                    <h1>Werewolf <span class="accent">Simulator</span></h1>
+                    <p>เล่นง่ายใช้เครื่องเดียวไม่ต้องมีไพ่</p>
+                </header>
+                <div class="intro-actions">
+                    <button id="intro-start-btn" class="btn primary large-btn">เริ่มเกมใหม่</button>
+                    <p class="version-text">Demo Version</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 1: User Setup -->
+        <section id="setup-screen" class="screen">
+            <div class="card">
+                <h2>ตั้งค่าผู้เล่น</h2>
+                <div class="input-group">
+                    <label for="player-count">จำนวนผู้เล่น (ขั้นต่ำ 6 คน)</label>
+                    <input type="number" id="player-count" min="6" value="6">
+                </div>
+                <div id="player-inputs-container">
+                    <!-- Dynamic player inputs will be generated here -->
+                </div>
+                <button id="to-config-btn" class="btn primary">ถัดไป: เลือกบทบาท</button>
+            </div>
+        </section>
+
+        <!-- Screen 2: Role Configuration -->
+        <section id="config-screen" class="screen">
+            <div class="card">
+                <h2>กำหนดบทบาท</h2>
+                <p class="subtitle">ผู้เล่นทั้งหมด: <span id="total-players-display">0</span> | บทบาทปัจจุบัน: <span
+                        id="current-roles-count">0</span></p>
+
+                <div class="role-config-list">
+                    <div class="role-item">
+                        <label>🐺 Werewolf</label>
+                        <div class="counter-control">
+                            <button class="btn-icon" onclick="adjustRole('werewolf', -1)">-</button>
+                            <span id="role-werewolf-count">0</span>
+                            <button class="btn-icon" onclick="adjustRole('werewolf', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="role-item">
+                        <label>🔮 Seer (ผู้หยั่งรู้)</label>
+                        <div class="counter-control">
+                            <button class="btn-icon" onclick="adjustRole('seer', -1)">-</button>
+                            <span id="role-seer-count">0</span>
+                            <button class="btn-icon" onclick="adjustRole('seer', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="role-item">
+                        <label>🛡️ Bodyguard</label>
+                        <div class="counter-control">
+                            <button class="btn-icon" onclick="adjustRole('bodyguard', -1)">-</button>
+                            <span id="role-bodyguard-count">0</span>
+                            <button class="btn-icon" onclick="adjustRole('bodyguard', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="role-item">
+                        <label>🤪 Madman (คนบ้า)</label>
+                        <div class="counter-control">
+                            <button class="btn-icon" onclick="adjustRole('madman', -1)">-</button>
+                            <span id="role-madman-count">0</span>
+                            <button class="btn-icon" onclick="adjustRole('madman', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="role-item">
+                        <label>🤫 Silencer (ใบ้)</label>
+                        <div class="counter-control">
+                            <button class="btn-icon" onclick="adjustRole('silencer', -1)">-</button>
+                            <span id="role-silencer-count">0</span>
+                            <button class="btn-icon" onclick="adjustRole('silencer', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="role-item">
+                        <label>👱 Villager (ชาวบ้าน)</label>
+                        <div class="counter-control">
+                            <span id="role-villager-count" class="auto-count">Auto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="error-msg" id="config-error"></div>
+
+                <div class="action-buttons">
+                    <button id="back-to-setup-btn" class="btn secondary">ย้อนกลับ</button>
+                    <button id="start-game-btn" class="btn primary">ยืนยัน & เริ่มสุ่ม</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 3: Pass & Play Reveal -->
+        <section id="reveal-screen" class="screen">
+            <div class="card reveal-card">
+                <!-- Step 1: Pass/Intro -->
+                <div id="pass-state" class="reveal-state active">
+                    <div class="icon-pulse">📱</div>
+                    <h3>ตาของ...</h3>
+                    <h2 id="current-player-name" class="player-name-highlight">Player Name</h2>
+                    <p>ส่งเครื่องให้ผู้เล่นคนนี้ แล้วกดปุ่มเพื่อเลือกไพ่</p>
+                    <button id="start-pick-btn" class="btn primary">เลือกไพ่</button>
+                </div>
+
+                <!-- Step 2: Card Grid -->
+                <div id="card-select-state" class="reveal-state">
+                    <h3>เลือกไพ่ 1 ใบ</h3>
+                    <div id="card-grid" class="card-grid">
+                        <!-- Cards injected here -->
+                    </div>
+                </div>
+
+                <!-- Step 3: Reveal Result -->
+                <div id="role-state" class="reveal-state">
+                    <h3>บทบาทของคุณคือ</h3>
+                    <div id="selected-card-display" class="role-reveal-box">
+                        <!-- Content injected via JS -->
+                        <div class="role-icon" id="revealed-role-icon"></div>
+                        <h2 id="revealed-role-name">Role Name</h2>
+                        <p id="revealed-role-desc">Description</p>
+                    </div>
+                    <button id="next-player-btn" class="btn secondary">ปิดหน้าจอ / คนถัดไป</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 4: Timer & Voting -->
+        <section id="timer-screen" class="screen">
+            <div class="card">
+                <h2>Game Dashboard</h2>
+
+                <!-- Round Counter -->
+                <div class="game-info-bar">
+                    <button id="show-gm-modal-btn" class="btn-chip" style="margin-right: 15px;">📜 Show Roles
+                        (GM)</button>
+                    <div class="round-counter">
+                        <div class="round-label">Round</div>
+                        <div id="phase-display" class="phase-text night">Night 1</div>
+                    </div>
+                </div>
+
+                <h2>จับเวลาโหวต 🗳️</h2>
+
+                <div class="timer-display-container">
+                    <div id="timer-display">00:00</div>
+                </div>
+
+                <div class="timer-controls">
+                    <div class="preset-buttons">
+                        <button class="btn-chip" onclick="setTimer(1)">1 นาที</button>
+                        <button class="btn-chip" onclick="setTimer(3)">3 นาที</button>
+                        <button class="btn-chip" onclick="setTimer(5)">5 นาที</button>
+                    </div>
+
+                    <div class="timer-actions">
+                        <button id="timer-toggle-btn" class="btn primary">เริ่มจับเวลา</button>
+                        <button id="timer-reset-btn" class="btn secondary">รีเซ็ต</button>
+                    </div>
+                </div>
+
+                <!-- Phase Control -->
+                <div class="dashboard-section">
+                    <div class="section-header" style="justify-content: center;">
+                        <button id="next-phase-btn" class="btn-sm btn-revive">Next Phase 🌙</button>
+                    </div>
+                </div>
+
+                <div class="action-buttons vertical" style="display: none;">
+                    <button id="to-summary-btn" class="btn secondary">จบเกม / ดูสรุปบทบาท</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 5: Summary (GM Only) -->
+        <section id="summary-screen" class="screen">
+            <div class="card">
+                <h2>แจกบทบาทครบแล้ว!</h2>
+                <p>คืนเครื่องให้ Game Master</p>
+
+                <div id="gm-role-list" class="hidden-content">
+                    <!-- List of players and roles (Hidden by default) -->
+                </div>
+
+                <div class="action-buttons vertical" style="display: none;">
+                    <button id="show-roles-btn" class="btn secondary">แสดงสรุปบทบาท (สำหรับ GM)</button>
+                    <button id="restart-btn" class="btn primary">เริ่มเกมใหม่</button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Screen 6: Victory -->
+        <section id="victory-screen" class="screen">
+            <div class="card victory-card">
+                <div class="victory-icon" id="victory-icon">🏆</div>
+                <h1 id="victory-title" class="victory-title">Victory!</h1>
+                <p id="victory-message" class="victory-message">The game has ended.</p>
+
+                <div class="victory-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">รอบที่จบ</span>
+                        <span id="victory-round" class="stat-value">1</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">ผู้รอดชีวิต</span>
+                        <span id="victory-survivors" class="stat-value">0</span>
+                    </div>
+                </div>
+
+                <div id="victory-role-list" class="victory-role-list">
+                    <!-- Role summary injected here -->
+                </div>
+
+                <div class="action-buttons vertical">
+                    <button id="play-again-btn" class="btn primary large-btn">🔄 เล่นอีกครั้ง</button>
+                    <button id="back-to-menu-btn" class="btn secondary">กลับหน้าหลัก</button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- GM Modal -->
+
+        <div id="gm-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>GM Grimoire</h2>
+                    <button id="close-gm-modal-btn" class="close-btn">&times;</button>
+                </div>
+                <div id="gm-modal-list" class="gm-role-list">
+                    <!-- Dynamic Roles -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase Transition Overlay -->
+        <div id="phase-transition" class="phase-transition">
+            <div class="phase-transition-content">
+                <div class="phase-icon" id="transition-icon">🌙</div>
+                <h1 class="phase-title" id="transition-title">กลางคืน</h1>
+                <p class="phase-subtitle" id="transition-subtitle">เวลาหมาป่าออกล่า...</p>
+            </div>
+        </div>
+
+        <script src="script.js"></script>
+</body>
+
+</html>
